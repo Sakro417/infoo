@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Información de Cuenta</title>
   <style>
-    /* Fondo negro para mejor contraste */
     body {
       margin: 0;
       padding: 0;
@@ -17,11 +16,7 @@
       justify-content: center;
       align-items: center;
       background: radial-gradient(ellipse at bottom, #ff4500 0%, #0d0d0d 70%);
-      position: relative;
-      z-index: 0;
     }
-
-    /* Contenedor principal */
     .container {
       background: #1a1a1acc;
       padding: 30px;
@@ -29,16 +24,12 @@
       text-align: center;
       width: 350px;
       box-shadow: 0 0 20px rgba(0,0,0,0.7);
-      position: relative;
-      z-index: 1;
       backdrop-filter: blur(8px);
     }
-
     h2 {
       margin-bottom: 20px;
       font-size: 24px;
     }
-
     .field {
       background: #222;
       padding: 12px;
@@ -49,24 +40,18 @@
       align-items: center;
       position: relative;
     }
-
     .blurred {
       filter: blur(8px);
       user-select: none;
       transition: filter 0.5s ease;
     }
-
     .eye-icon {
       width: 20px;
       height: 20px;
       cursor: pointer;
       margin-left: 10px;
     }
-
-    .eye-icon svg {
-      fill: white;
-    }
-
+    .eye-icon svg { fill: white; }
     .edit-btn {
       position: absolute;
       top: -15px;
@@ -83,17 +68,8 @@
       box-shadow: 0 0 8px rgba(0, 123, 255, 0.7);
       transition: background 0.3s;
     }
-
-    .edit-btn svg {
-      width: 20px;
-      height: 20px;
-      fill: white;
-    }
-
-    .edit-btn.save {
-      background: #28a745;
-    }
-
+    .edit-btn svg { width: 20px; height: 20px; fill: white; }
+    .edit-btn.save { background: #28a745; }
     .field input {
       background: transparent;
       border: none;
@@ -102,16 +78,60 @@
       font-size: 14px;
       text-align: left;
     }
-
     .field input:disabled {
       color: white;
       background: transparent;
       border: none;
     }
+    /* Modal */
+    .modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+    }
+    .modal-content {
+      background: #1a1a1a;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      width: 300px;
+    }
+    .modal-content input {
+      padding: 10px;
+      width: 80%;
+      margin-top: 10px;
+      border: none;
+      border-radius: 5px;
+    }
+    .modal-content button {
+      padding: 10px 15px;
+      margin-top: 10px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .error { color: red; font-size: 14px; margin-top: 5px; }
   </style>
 </head>
 <body>
-  <div class="container" id="info-container">
+  <!-- Modal de verificación -->
+  <div class="modal" id="passwordModal">
+    <div class="modal-content">
+      <h3>Ingrese la contraseña</h3>
+      <input type="password" id="passwordInput" placeholder="Contraseña">
+      <button id="passwordSubmit">Entrar</button>
+      <div class="error" id="errorMsg"></div>
+    </div>
+  </div>
+
+  <div class="container" id="info-container" style="display:none;">
     <button class="edit-btn" id="editToggle">
       <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z"/></svg>
     </button>
@@ -140,24 +160,39 @@
   </div>
 
   <script>
+    const PASSWORD_CORRECTA = "123";
+
+    const passwordModal = document.getElementById('passwordModal');
+    const passwordInput = document.getElementById('passwordInput');
+    const passwordSubmit = document.getElementById('passwordSubmit');
+    const errorMsg = document.getElementById('errorMsg');
+    const infoContainer = document.getElementById('info-container');
+
+    passwordSubmit.addEventListener('click', () => {
+      if (passwordInput.value === PASSWORD_CORRECTA) {
+        passwordModal.style.display = 'none';
+        infoContainer.style.display = 'block';
+      } else {
+        errorMsg.textContent = "Contraseña incorrecta";
+        passwordInput.value = '';
+      }
+    });
+
     const eyeIcons = document.querySelectorAll('.eye-icon');
     const editToggle = document.getElementById('editToggle');
     const inputs = document.querySelectorAll('.field input');
 
     let editMode = false;
 
-    // Mostrar campos temporalmente
     eyeIcons.forEach(icon => {
       icon.addEventListener('click', () => {
         const targetId = icon.dataset.target;
         const targetElement = document.getElementById(targetId);
-
         targetElement.classList.remove('blurred');
         setTimeout(() => targetElement.classList.add('blurred'), 10000);
       });
     });
 
-    // Activar edición
     editToggle.addEventListener('click', () => {
       editMode = !editMode;
       editToggle.classList.toggle('save', editMode);
@@ -171,7 +206,7 @@
       inputs.forEach(input => {
         input.disabled = !editMode;
         if (!editMode) {
-          localStorage.setItem(input.id, input.value); // Guardar cambios
+          localStorage.setItem(input.id, input.value);
           input.classList.add('blurred');
         } else {
           input.classList.remove('blurred');
@@ -179,7 +214,6 @@
       });
     });
 
-    // Cargar datos guardados
     window.addEventListener('load', () => {
       inputs.forEach(input => {
         const savedValue = localStorage.getItem(input.id);
